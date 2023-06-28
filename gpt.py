@@ -26,8 +26,6 @@ else:
 # Initialize dataloader
 dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
-# Custom Model
-
 
 class MusicGPT(nn.Module):
     def __init__(self, gpt2_model_name='gpt2'):
