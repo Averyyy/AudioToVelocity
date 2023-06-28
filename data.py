@@ -70,6 +70,8 @@ class SMDDataset(Dataset):
         else:
             label = label[:, :max_label_length]
 
+        # audio = audio.permute(1, 0)
+
         return audio, label
 
     def loadData(self):
@@ -94,7 +96,8 @@ class SMDDataset(Dataset):
 
                 wave, sr = librosa.load(
                     os.path.join(self.data_dir, audioFileName))
-                S = np.abs(librosa.stft(wave, hop_length=512))
+                S = np.abs(librosa.stft(wave, n_fft=2046,
+                           hop_length=512, center=False))
                 S_dB = librosa.amplitude_to_db(S, ref=1e-4)
 
                 self.audios.append(S_dB)
