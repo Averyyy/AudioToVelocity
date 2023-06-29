@@ -43,7 +43,7 @@ class MusicGPT(nn.Module):
         x = x.permute(0, 2, 1)  # shape: [1, 8000, 1024]
 
         # Sliding window approach
-        window_size = 512  # GPT-2 max: 1024
+        window_size = 1024  # GPT-2 max: 1024
         outputs = []
         for i in range(0, x.size(1), window_size):
 
@@ -76,7 +76,7 @@ if not os.path.exists('modelsGPT'):
     os.makedirs('modelsGPT')
 
 # train the network
-num_epochs = 20
+num_epochs = 100
 losses = []
 print('Start Training')
 
@@ -104,7 +104,7 @@ for epoch in range(num_epochs):
     scheduler.step(loss.item())
     losses.append((epoch, loss.item()))
 
-    if epoch % 5 == 4:
+    if epoch % 10 == 9:
         torch.save(net.state_dict(), f'modelsGPT/piano_model_{epoch + 1}.pth')
 
 with open('lossGPT.txt', 'w') as f:
