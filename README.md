@@ -20,9 +20,9 @@ The Music Transformer is a model that aims to generate MIDI parameters from pian
 
 Before running the code, you need to install the required libraries. You can install them using `pip`:
 
-\```sh
+```sh
 pip install torch torchaudio librosa miditok
-\```
+```
 
 ## Dataset
 
@@ -30,13 +30,13 @@ The dataset used is SMD (Sample Music Dataset). It consists of piano recordings 
 
 Example of files in the dataset:
 
-\```
+```
 -Bach_BWV849-01_001_20090916-SMD.mid
 -Bach_BWV849-01_001_20090916-SMD.npy
 -Bach_BWV849-01_001_20090916-SMD.mp3
 -Bartok.....mid
 ...
-\```
+```
 
 ## Model Architecture
 
@@ -48,17 +48,18 @@ The encoder is composed of multiple layers, where each layer contains multi-head
 
 To train the model, run the main script:
 
-\```sh
+```sh
 python main.py
-\```
+```
 
 This will train the model using the SMD dataset. The trained model will be saved as `piano_model.pth`.
 
 To use the trained model for generating MIDI parameters from new piano recordings, you can load the model and pass the recordings through it:
 
-\```python
+```python
 model = MusicTransformer(...)
 model.load_state_dict(torch.load('piano_model.pth'))
+```
 
 ## Contributing
 
