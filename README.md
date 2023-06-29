@@ -60,11 +60,6 @@ To use the trained model for generating MIDI parameters from new piano recording
 model = MusicTransformer(...)
 model.load_state_dict(torch.load('piano_model.pth'))
 
-# Pass your piano recordings through the model
-
-midi_parameters = model(your_piano_recordings)
-\```
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or create an issue for any bugs or feature requests.
