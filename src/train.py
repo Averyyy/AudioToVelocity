@@ -10,7 +10,7 @@ import pickle
 from dataset import collate_fn
 
 
-def train(model, dataloader, criterion, optimizer, device):
+def train(model, dataloader, criterion, optimizer, device, scheduler):
     model.train()
     total_loss = 0.0
 
@@ -29,6 +29,7 @@ def train(model, dataloader, criterion, optimizer, device):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step()
 
         total_loss += loss.item()
         if i % 100 == 0:
@@ -61,14 +62,17 @@ def validate(model, dataloader, criterion, device):
 
 def main():
     # Set device configuration
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.backends.mps.is_available():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Define hyperparameters
     hidden_dim = 512
     num_layers = 32
     nhead = 16
     learning_rate = 0.001
-    num_epochs = 10
+    num_epochs = 50
     batch_size = 4
 
     # Load and split dataset
@@ -97,18 +101,31 @@ def main():
 
     # Define the model, loss function, and optimizer
     model = TransformerModel(freq_dim=1025,
-                             note_dim=3, hidden_dim=hidden_dim,
+                             note_dim=90, hidden_dim=hidden_dim,
                              nhead=nhead, num_layers=num_layers).to(device)
-    criterion = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Decays learning rate by a factor of 0.1 every 10 epochs
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
 
     # Training loop
     for epoch in range(num_epochs):
         train_loss = train(model, train_dataloader,
-                           criterion, optimizer, device)
+                           criterion, optimizer, device, scheduler)
         val_loss = validate(model, val_dataloader, criterion, device)
         print(
             f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}')
+        with open('logs/train_loss.txt', 'w') as f:
+            f.write(
+                f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')
+
+    # Save the model
+    if not os.path.exists('checkpoints'):
+        os.makedirs('checkpoints')
+    torch.save(model.state_dict(), 'checkpoints/model.pth')
 
 
 if __name__ == '__main__':
