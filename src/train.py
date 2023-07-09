@@ -21,7 +21,7 @@ def train(model, dataloader, criterion, optimizer, device):
         velocity = velocity.to(device)
 
         # Forward pass
-        output = model(audio, midi).permute(1, 0)
+        output = model(audio, midi)
         # print(output.shape, velocity.shape)
         loss = criterion(output, velocity)
 
@@ -69,7 +69,7 @@ def main():
     nhead = 16
     learning_rate = 0.001
     num_epochs = 10
-    batch_size = 8
+    batch_size = 4
 
     # Load and split dataset
     if not os.path.exists('data/processed/train_data.pkl'):

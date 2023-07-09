@@ -30,11 +30,8 @@ class TransformerModel(nn.Module):
         super(TransformerModel, self).__init__()
 
         # Define the source and target embedding layers
-        self.source_embedding = nn.Sequential(
-            nn.Conv1d(freq_dim, hidden_dim, kernel_size=1),
-            nn.ReLU(),
-        )
-        self.target_embedding = nn.Linear(note_dim, hidden_dim)
+        self.source_embedding = CNNEncoder(freq_dim, hidden_dim)
+        self.target_embedding = CNNEncoder(note_dim, hidden_dim)
 
         # Define the transformer
         self.transformer = nn.Transformer(
@@ -58,13 +55,13 @@ class TransformerModel(nn.Module):
         # Predict velocities
         output = self.output_layer(output)
 
-        return output.squeeze(-1)
+        return output.squeeze(-1).transpose(0, 1)
 
 
 if __name__ == "__main__":
     # Initialize a transformer model and some dummy data
     model = TransformerModel(freq_dim=1025,
-                             note_dim=3, hidden_dim=512, nhead=16, num_layers=32)
+                             note_dim=3, hidden_dim=512, nhead=6, num_layers=6)
     source = torch.rand(1, 1025, 345)  # example audio input
     target = torch.rand(1, 23, 3)  # example MIDI input
 
