@@ -11,6 +11,7 @@ from dataset import collate_fn
 
 
 def train(model, dataloader, criterion, optimizer, device, scheduler):
+def train(model, dataloader, criterion, optimizer, device, scheduler):
     model.train()
     total_loss = 0.0
 
@@ -29,6 +30,7 @@ def train(model, dataloader, criterion, optimizer, device, scheduler):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        scheduler.step()
         scheduler.step()
 
         total_loss += loss.item()
@@ -62,6 +64,10 @@ def validate(model, dataloader, criterion, device):
 
 def main():
     # Set device configuration
+    if torch.backends.mps.is_available():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if torch.backends.mps.is_available():
         device = torch.device('mps')
     else:
@@ -102,9 +108,16 @@ def main():
     # Define the model, loss function, and optimizer
     model = TransformerModel(freq_dim=1025,
                              note_dim=90, hidden_dim=hidden_dim,
+                             note_dim=90, hidden_dim=hidden_dim,
                              nhead=nhead, num_layers=num_layers).to(device)
     criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Decays learning rate by a factor of 0.1 every 10 epochs
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
     # Decays learning rate by a factor of 0.1 every 10 epochs
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
@@ -115,9 +128,18 @@ def main():
     for epoch in range(num_epochs):
         train_loss = train(model, train_dataloader,
                            criterion, optimizer, device, scheduler)
+                           criterion, optimizer, device, scheduler)
         val_loss = validate(model, val_dataloader, criterion, device)
         print(
             f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}')
+        with open('logs/train_loss.txt', 'w') as f:
+            f.write(
+                f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')
+
+    # Save the model
+    if not os.path.exists('checkpoints'):
+        os.makedirs('checkpoints')
+    torch.save(model.state_dict(), 'checkpoints/model.pth')
         with open('logs/train_loss.txt', 'w') as f:
             f.write(
                 f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')

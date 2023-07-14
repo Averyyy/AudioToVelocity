@@ -5,3 +5,6 @@ models/*
 modelsGPT
 checkpoints/*
 logs/*
+checkpoints/*
+logs
+.DS_Store
