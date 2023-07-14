@@ -19,6 +19,7 @@ class CNNEncoder(nn.Module):
                                kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
+        x = x.float()
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
 
@@ -38,7 +39,7 @@ class TransformerModel(nn.Module):
             hidden_dim, nhead, num_layers, num_layers, hidden_dim, dropout)
 
         # Define the output layer
-        self.output_layer = nn.Linear(hidden_dim, 1)
+        self.output_layer = nn.Linear(hidden_dim, 128)
 
     def forward(self, source, target):
         # Embed source and target
@@ -47,25 +48,31 @@ class TransformerModel(nn.Module):
         # Source shape: (seq_length, batch_size, hidden_dim)
         source = source.permute(2, 0, 1)
         # Target shape: (note_num, batch_size, hidden_dim)
-        target = self.target_embedding(target).permute(1, 0, 2)
+        target = target.permute(0, 2, 1)
+        target = self.target_embedding(target).permute(2, 0, 1)
+
+        # print(source.shape, target.shape)
 
         # Run through transformer
         output = self.transformer(source, target)
-
+        # output: (num_notes, batch_size, hidden_dim)
         # Predict velocities
         output = self.output_layer(output)
+        # Apply softmax to the last dimension
+        output = F.softmax(output, dim=-1)
 
-        return output.squeeze(-1).transpose(0, 1)
+        # Return shape: (batch_size, seq_length, 128)
+        return output.transpose(0, 1)
 
 
 if __name__ == "__main__":
     # Initialize a transformer model and some dummy data
     model = TransformerModel(freq_dim=1025,
-                             note_dim=3, hidden_dim=512, nhead=6, num_layers=6)
+                             note_dim=90, hidden_dim=512, nhead=8, num_layers=6)
     source = torch.rand(1, 1025, 345)  # example audio input
-    target = torch.rand(1, 23, 3)  # example MIDI input
+    target = torch.rand(1, 38, 90)  # example MIDI input
 
     # Forward pass
     velocities = model(source, target)
-    # Should be (note_num, batch_size)
+    # Should be (batch_size, seq_length, 128)
     print(f"Output shape: {velocities.shape}")
