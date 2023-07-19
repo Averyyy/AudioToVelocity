@@ -6,6 +6,26 @@ import torch.nn as nn
 from dataset import VelocityDataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
+import numpy as np
+
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, hidden_dim, dropout=0.1, max_len=500):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, hidden_dim)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(
+            0, hidden_dim, 2).float() * (-np.log(10000.0) / hidden_dim))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
 
 
 class CNNEncoder(nn.Module):
@@ -31,6 +51,8 @@ class TransformerModel(nn.Module):
     def __init__(self, freq_dim, note_dim, hidden_dim, nhead, num_layers, dropout=0.5):
         super(TransformerModel, self).__init__()
 
+        self.pos_encoder = PositionalEncoding(hidden_dim, dropout)
+
         # Define the source and target embedding layers
         self.source_embedding = CNNEncoder(freq_dim, hidden_dim)
         self.target_embedding = CNNEncoder(note_dim, hidden_dim)
@@ -47,8 +69,11 @@ class TransformerModel(nn.Module):
         # Embed source and target
         # Source shape: (batch_size, hidden_dim, seq_length)
         source = self.source_embedding(source)
+        # print(source.shape)
+
         # Source shape: (seq_length, batch_size, hidden_dim)
         source = source.permute(2, 0, 1)
+        source = self.pos_encoder(source)
         # Target shape: (note_num, batch_size, hidden_dim)
         target = target.permute(0, 2, 1)
         target = self.target_embedding(target).permute(2, 0, 1)

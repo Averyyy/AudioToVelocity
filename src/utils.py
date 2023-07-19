@@ -47,9 +47,18 @@ def parse_files(data_dir, output_dir, segment_length=8, window_hop_length=4):
                     midi_segment = []
                     for instrument in midi_data.instruments:
                         for note in instrument.notes:
-                            # If the note is in the current segment
-                            if start_time <= note.start < end_time or start_time < note.end <= end_time:
-                                midi_segment.append(note)
+                            # If the note is active during the current segment
+                            if note.end > start_time and note.start < end_time:
+                                # Create a new note object
+                                new_note = pretty_midi.Note(
+                                    velocity=note.velocity,
+                                    pitch=note.pitch,
+                                    start=max(
+                                        note.start, start_time) - start_time,
+                                    end=min(note.end, end_time) - start_time
+                                )
+
+                                midi_segment.append(new_note)
 
                     # Save segmented files
                     # Construct the output filename
@@ -71,6 +80,6 @@ def parse_files(data_dir, output_dir, segment_length=8, window_hop_length=4):
 
 if __name__ == "__main__":
     data_dir = os.path.join('data', 'SMD')
-    output_dir = os.path.join('data', 'SMD-3s')
+    output_dir = os.path.join('data', 'SMD-8s-normalize')
     os.makedirs(output_dir, exist_ok=True)
     parse_files(data_dir, output_dir)

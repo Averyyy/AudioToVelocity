@@ -139,7 +139,7 @@ def main():
     if not os.path.exists('checkpoints'):
         os.makedirs('checkpoints')
     torch.save(model.state_dict(), 'checkpoints/model.pth')
-    with open('logs/train_loss.txt', 'w') as f:
+    with open('logs/train_loss.txt', 'a') as f:
         f.write(
             f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')
 
