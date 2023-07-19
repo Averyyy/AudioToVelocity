@@ -29,11 +29,8 @@ class VelocityDataset(Dataset):
         # Parse MIDI data
         midi_data = []
         note_pitches = []
-        note_pitches = []
         for instrument in midi_file.instruments:
-            for note in instrument.notes:  # normalize
-                midi_data.append([note.start, note.end])
-                note_pitches.append(note.pitch)
+            for note in instrument.notes:
                 midi_data.append([note.start, note.end])
                 note_pitches.append(note.pitch)
         midi_data = np.array(midi_data, dtype=np.float32)
@@ -53,19 +50,11 @@ class VelocityDataset(Dataset):
         # midi_data = midi_data_expanded * note_pitches[:, np.newaxis, :]
         midi_data = np.concatenate([midi_data, note_pitches], axis=1)
 
-        # Convert note pitches to one-hot encoding and add a dimension
-        note_pitches = np.eye(88)[np.array(note_pitches) - 21]
-        # midi_data_expanded = np.repeat(midi_data[:, :, np.newaxis], 88, axis=2)
-        # midi_data = midi_data_expanded * note_pitches[:, np.newaxis, :]
-        midi_data = np.concatenate([midi_data, note_pitches], axis=1)
-
         # Extract velocity from MIDI data
         velocity = []
         for instrument in midi_file.instruments:
             for note in instrument.notes:
                 velocity.append(note.velocity)
-        # velocity = np.array(velocity, dtype=np.float32)
-        velocity = np.eye(128)[velocity]
         # velocity = np.array(velocity, dtype=np.float32)
         velocity = np.eye(128)[velocity]
 
