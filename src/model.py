@@ -53,12 +53,6 @@ class TransformerModel(nn.Module):
         target = target.permute(0, 2, 1)
         target = self.target_embedding(target).permute(2, 0, 1)
 
-        # print(source.shape, target.shape)
-        target = target.permute(0, 2, 1)
-        target = self.target_embedding(target).permute(2, 0, 1)
-
-        # print(source.shape, target.shape)
-
         # Run through transformer
         output = self.transformer(source, target)
         # output: (num_notes, batch_size, hidden_dim)
@@ -78,9 +72,8 @@ class TransformerModel(nn.Module):
 
 if __name__ == "__main__":
     # Initialize a transformer model and some dummy data
-    model = TransformerModel(freq_dim=1025,
-                             note_dim=90, hidden_dim=512, nhead=8, num_layers=6)
-                             note_dim=90, hidden_dim=512, nhead=8, num_layers=6)
+    model = TransformerModel(freq_dim=1025, note_dim=90,
+                             hidden_dim=512, nhead=8, num_layers=6)
     source = torch.rand(1, 1025, 345)  # example audio input
     target = torch.rand(1, 38, 90)  # example MIDI input
     target = torch.rand(1, 38, 90)  # example MIDI input

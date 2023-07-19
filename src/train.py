@@ -11,7 +11,6 @@ from dataset import collate_fn
 
 
 def train(model, dataloader, criterion, optimizer, device, scheduler):
-def train(model, dataloader, criterion, optimizer, device, scheduler):
     model.train()
     total_loss = 0.0
 
@@ -106,9 +105,7 @@ def main():
         val_data, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
     # Define the model, loss function, and optimizer
-    model = TransformerModel(freq_dim=1025,
-                             note_dim=90, hidden_dim=hidden_dim,
-                             note_dim=90, hidden_dim=hidden_dim,
+    model = TransformerModel(freq_dim=1025, note_dim=90, hidden_dim=hidden_dim,
                              nhead=nhead, num_layers=num_layers).to(device)
     criterion = nn.CrossEntropyLoss()
     criterion = nn.CrossEntropyLoss()
@@ -128,7 +125,6 @@ def main():
     for epoch in range(num_epochs):
         train_loss = train(model, train_dataloader,
                            criterion, optimizer, device, scheduler)
-                           criterion, optimizer, device, scheduler)
         val_loss = validate(model, val_dataloader, criterion, device)
         print(
             f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}')
@@ -140,9 +136,9 @@ def main():
     if not os.path.exists('checkpoints'):
         os.makedirs('checkpoints')
     torch.save(model.state_dict(), 'checkpoints/model.pth')
-        with open('logs/train_loss.txt', 'w') as f:
-            f.write(
-                f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')
+    with open('logs/train_loss.txt', 'w') as f:
+        f.write(
+            f'Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss}, Validation Loss: {val_loss}\n')
 
     # Save the model
     if not os.path.exists('checkpoints'):
