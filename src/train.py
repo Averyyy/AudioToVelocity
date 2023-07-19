@@ -81,13 +81,15 @@ def main():
     batch_size = 4
 
     # Load and split dataset
+    print('----- Loading Dataset -----')
     if not os.path.exists('data/processed/train_data.pkl'):
-        data_dir = os.path.join('data', 'SMD-8s')
+        data_dir = os.path.join('data', 'SMD-8s-normalize')
         dataset = VelocityDataset(data_dir)
-        print(len(dataset))
+        # print(len(dataset))
         train_data, val_data = train_test_split(
             dataset, test_size=0.2, random_state=42)
-        os.makedirs('data/processed')
+        if not os.path.exists('data/processed'):
+            os.makedirs('data/processed')
         with open('data/processed/train_data.pkl', 'wb') as f:
             pickle.dump(train_data, f)
         with open('data/processed/val_data.pkl', 'wb') as f:
@@ -121,6 +123,7 @@ def main():
     if not os.path.exists('logs'):
         os.makedirs('logs')
 
+    print('----- Start Training -----')
     # Training loop
     for epoch in range(num_epochs):
         train_loss = train(model, train_dataloader,
@@ -143,6 +146,7 @@ def main():
     # Save the model
     if not os.path.exists('checkpoints'):
         os.makedirs('checkpoints')
+    print('----- Saving Model -----')
     torch.save(model.state_dict(), 'checkpoints/model.pth')
 
 
