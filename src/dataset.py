@@ -55,8 +55,11 @@ class VelocityDataset(Dataset):
         for instrument in midi_file.instruments:
             for note in instrument.notes:
                 velocity.append(note.velocity)
+                # print(note.velocity)
         # velocity = np.array(velocity, dtype=np.float32)
-        velocity = np.eye(128)[velocity]
+        # velocity = np.eye(128)[velocity]
+        # print(velocity)
+        velocity = np.array(velocity, dtype=np.longlong)
 
         if len(velocity) == 0:
             raise Exception(
@@ -71,9 +74,13 @@ def collate_fn(batch):
     audio, midi, velocity = zip(*batch)
 
     # pad midi and velocity
-    midi = pad_sequence([torch.from_numpy(m) for m in midi], batch_first=True)
+    midi = pad_sequence([torch.from_numpy(m)
+                        for m in midi], batch_first=True, padding_value=-1)
     velocity = pad_sequence([torch.from_numpy(v)
-                            for v in velocity], batch_first=True)
+                            for v in velocity], batch_first=True, padding_value=128)
+    # velocity = velocity.argmax(dim=-1)
+    # velocity[velocity.sum(dim=-1) == 0] = 128
+    velocity = velocity.reshape(-1)
 
     return torch.from_numpy(np.array(audio)), midi, velocity
 

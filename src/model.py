@@ -47,21 +47,24 @@ class CNNEncoder(nn.Module):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, freq_dim, note_dim, hidden_dim, nhead, num_layers, dropout=0.5):
+    def __init__(self, freq_dim, note_dim, hidden_dim, nhead, num_layers, dropout=0.5, device='cpu'):
         super(TransformerModel, self).__init__()
+        self.device = device
 
         self.pos_encoder = PositionalEncoding(hidden_dim, dropout)
 
         # Define the source and target embedding layers
         self.source_embedding = CNNEncoder(freq_dim, hidden_dim)
-        self.target_embedding = CNNEncoder(note_dim, hidden_dim)
+        # self.target_embedding = CNNEncoder(note_dim, hidden_dim)
+        self.start_end_embedding = CNNEncoder(2, hidden_dim//2)
+        self.pitch_embedding = CNNEncoder(88, hidden_dim-hidden_dim//2)
 
         # Define the transformer
         self.transformer = nn.Transformer(
             hidden_dim, nhead, num_layers, num_layers, hidden_dim, dropout)
 
         # Define the output layer
-        self.output_layer = nn.Linear(hidden_dim, 128)
+        self.output_layer = nn.Linear(hidden_dim, 129)
 
     def forward(self, source, target):
         # Embed source and target
@@ -69,14 +72,27 @@ class TransformerModel(nn.Module):
         source = source.permute(2, 0, 1)
         source = self.pos_encoder(source)
 
-        target = target.permute(0, 2, 1)
-        target = self.target_embedding(target).permute(2, 0, 1)
+        start_end = target[:, :, :2].permute(0, 2, 1)
+        pitch = target[:, :, 2:].permute(0, 2, 1)
+        start_end_embed = self.start_end_embedding(start_end)
+        pitch_embed = self.pitch_embedding(pitch)
+        target = torch.cat((start_end_embed, pitch_embed),
+                           dim=1).permute(2, 0, 1)
 
         # Run through transformer
-        output = self.transformer(source, target)
+        src_mask = self.create_padding_mask(source[:, :, 0]).to(
+            self.device)
+        tgt_mask = self.create_padding_mask(target[:, :, 0]).to(
+            self.device)
+        output = self.transformer(
+            source, target, src_key_padding_mask=src_mask, tgt_key_padding_mask=tgt_mask)
         output = self.output_layer(output)
 
         return output.transpose(0, 1)
+
+    def create_padding_mask(self, seq):
+        seq = torch.eq(seq, -1)  # get where the seq is 0
+        return seq.T
 
 
 if __name__ == "__main__":

@@ -20,6 +20,9 @@ def train(model, dataloader, criterion, optimizer, device, scheduler):
         velocity = velocity.to(device)
 
         output = model(audio, midi)
+
+        output = output.reshape(-1, output.shape[-1])
+        # print(velocity)
         loss = criterion(output, velocity)
 
         optimizer.zero_grad()
@@ -47,6 +50,8 @@ def validate(model, dataloader, criterion, device):
             velocity = velocity.to(device)
 
             output = model(audio, midi)
+            output = output.reshape(-1, output.shape[-1])
+
             loss = criterion(output, velocity)
 
             total_loss += loss.item()
@@ -66,7 +71,7 @@ def main():
     batch_size = 4
 
     print('----- Loading Dataset -----')
-    data_dir = os.path.join('data', 'SMD-8s-normalize')
+    data_dir = os.path.join('data', 'SMD-8s-normalized')
 
     if not os.path.exists('data/processed/train_data.pkl'):
         dataset = VelocityDataset(data_dir)
@@ -95,8 +100,8 @@ def main():
         val_data, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
     model = TransformerModel(freq_dim=1025, note_dim=90, hidden_dim=hidden_dim,
-                             nhead=nhead, num_layers=num_layers).to(device)
-    criterion = nn.CrossEntropyLoss()
+                             nhead=nhead, num_layers=num_layers, device=device).to(device)
+    criterion = nn.CrossEntropyLoss(ignore_index=128)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 

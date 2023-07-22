@@ -10,11 +10,11 @@ Contributions are welcome! Please feel free to submit a Pull Request or create a
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-positional encoding dev
-time normalize dev
+positional encoding dev done
+time normalize dev done
 midi padding mask pending
 loss ignore index pending
 
 velocity bin pending
-分别 embed start, end, pitch(one hot) pending
+分别 embed start, end, pitch(one hot) dev done
 data augmentation(audio(torch_audio), velocity(add noise), time(add noise)) pending
