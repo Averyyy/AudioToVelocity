@@ -12,8 +12,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 positional encoding dev done
 time normalize dev done
-midi padding mask pending
-loss ignore index pending
+midi padding mask done  
+loss ignore index done
 
 velocity bin pending
 分别 embed start, end, pitch(one hot) dev done
